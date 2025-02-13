@@ -2,7 +2,7 @@ from typing import Final
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, MessageHandler, filters, ConversationHandler, CallbackContext, CommandHandler
 
-WIFE_SALARY, MY_SALARY, CHILD_CARE = range(3)  # Добавили новое состояние для Child Care
+WIFE_SALARY, MY_SALARY, CHILD_CARE = range(3)  # Added a new state for Child Care
 
 async def start_command(update: Update, context: CallbackContext):
     keyboard = [
@@ -40,7 +40,7 @@ async def get_my_salary(update: Update, context: CallbackContext):
     try:
         context.user_data['my_salary'] = float(update.message.text)
         await update.message.reply_text("Enter the amount you spent on Child Care:")
-        return CHILD_CARE  # Переход к состоянию для Child Care
+        return CHILD_CARE  # Transition to the Child Care state
     except ValueError:
         await update.message.reply_text("Invalid input. Please enter a valid salary.")
         return MY_SALARY
@@ -48,11 +48,11 @@ async def get_my_salary(update: Update, context: CallbackContext):
 async def get_child_care(update: Update, context: CallbackContext):
     try:
         context.user_data['child_care'] = float(update.message.text)
-        # Рассчитать итоговое значение Universal Credit
+        # Calculate the final value of Universal Credit
         result = calculate_universal_credit_function(
             context.user_data['wife_salary'],
             context.user_data['my_salary'],
-            context.user_data['child_care'],  # Добавили затраты на уход за ребенком
+            context.user_data['child_care'],  # Added the expenses for child care
             1496.02
         )
         reply_text = f"Total payment for the month: {result:.2f}"
@@ -65,7 +65,7 @@ async def get_child_care(update: Update, context: CallbackContext):
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await update.message.reply_text(reply_text, reply_markup=reply_markup)
-        context.user_data.clear()  # Очищаем данные после завершения расчета
+        context.user_data.clear()  # Clear the data after the calculation is completed
         return ConversationHandler.END
     except ValueError:
         await update.message.reply_text("Invalid input. Please enter a valid amount.")
@@ -75,10 +75,10 @@ def calculate_universal_credit_function(wife_salary, my_salary, child_care, tota
     first_take_home_pay = 404.00
     total_take_home_pay = wife_salary + my_salary
 
-    # Рассчитываем сумму ухода за ребенком с учетом 15%
+    # Calculate the child care amount taking into account 15%
     adjusted_child_care = child_care * 0.85
 
-    # Финальный расчет Universal Credit с учетом затрат на Child Care
+    # Final calculation of Universal Credit including child care expenses
     total_payment_for_month = total_uc_payment - ((total_take_home_pay - first_take_home_pay) * 0.55) + adjusted_child_care
     return total_payment_for_month
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         states={
             WIFE_SALARY: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_wife_salary)],
             MY_SALARY: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_my_salary)],
-            CHILD_CARE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_child_care)],  # Новое состояние для Child Care
+            CHILD_CARE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_child_care)],  # New state for Child Care
         },
         fallbacks=[],
     )
